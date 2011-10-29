@@ -28,16 +28,38 @@ colocarBarcos(B):-
 	write('Informacion de Barco:'),
 	nl,
 	write('Tamano: '),
-	read(t),
+	read(T),
 	write('Direccion: '),
-	read(d),
+	read(D),
 	write('Fila Inicial: '),
-	read(filaI),
+	read(FilaI),
 	write('Columna Inicial: '),
-	read(columnaI),
+	read(ColumnaI),
 	assert(barco(pos(filaI,columnaI),tam(t),dir(d))),
 	B1 is B - 1,
 	colocarBarcos(B1).
+
+ataque(_,_,0,0).
+ataque(_,_,_,0).
+ataque(_,_,0,_).
+ataque(T0,T1,F,C):-
+       write('Fila a atacar: '),
+       read(Fa),
+       write('Columna a atacar: '),
+       read(Ca),
+       ataqueaux(T0,T1,Fa,Ca).
+
+ataqueaux([T0|T0s],[T1|T0s],0,C):-
+       ataqueaux2(T0,T1,C).
+ataqueaux([T0|T0s],[T0|T1],F,C):-
+       Fnew is F -1,
+       ataqueaux(T0s,T1,Fnew,C).
+
+ataqueaux2(['b'|T0s],['g'|T0s],0).
+ataqueaux2(['a'|T0s],['f'|T0s],0).
+ataqueaux2([T0|T0s],[T0|T1],C):-
+       Cnew is C -1,
+       ataqueaux2(T0s,T1,Cnew).
 	
 jugar:-
 	write('Num. de Filas: '),
