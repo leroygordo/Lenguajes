@@ -21,6 +21,23 @@ mostrartableroaux([]):-
 mostrartableroaux([L|Ls]):-
 	write(L),
 	mostrartableroaux(Ls).
+
+colocarBarcos(0).
+colocarBarcos(B):-
+	B > 0,
+	write('Informacion de Barco:'),
+	nl,
+	write('Tamano: '),
+	read(t),
+	write('Direccion: '),
+	read(d),
+	write('Fila Inicial: '),
+	read(filaI),
+	write('Columna Inicial: '),
+	read(columnaI),
+	assert(barco(pos(filaI,columnaI),tam(t),dir(d))),
+	B1 is B - 1,
+	colocarBarcos(B1).
 	
 jugar:-
 	write('Num. de Filas: '),
@@ -33,5 +50,6 @@ jugar:-
 	tableroinicial(NFilas,NColumnas,Tdp),
 	%ponerbarcos(NBarcos,Tdp,Tbp),
 	mostrartablero(Tdp),
+	colocarBarcos(NBarcos),
 	%ciclopricipal(),
 	retractall(tamano(X,Y)).
