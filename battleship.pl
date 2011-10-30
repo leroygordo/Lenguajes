@@ -35,7 +35,7 @@ colocarBarcos(B):-
 	read(FilaI),
 	write('Columna Inicial: '),
 	read(ColumnaI),
-	assert(barco(pos(filaI,columnaI),tam(t),dir(d))),
+	assert(barco(pos(FilaI,ColumnaI),tam(T),dir(D))),
 	B1 is B - 1,
 	colocarBarcos(B1).
 
@@ -69,6 +69,7 @@ jugar:-
 	write('Cant. de Barcos: '),
 	read(NBarcos),
 	assert(tamano(NFilas,NColumnas)),
+	assert(barcos(NBarcos)),
 	tableroinicial(NFilas,NColumnas,Tdp),
 	%ponerbarcos(NBarcos,Tdp,Tbp),
 	mostrartablero(Tdp),
