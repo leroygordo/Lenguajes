@@ -49,23 +49,18 @@ ataque(_,_,0,0).
 ataque(_,_,_,0).
 ataque(_,_,0,_).
 ataque(T0,T1,F,C):-
-%	write('Fila a atacar: '),
-%	read(Fa),
-%	write('Columna a atacar: '),
-%	read(Ca),
 	ataquesposibles(0,0,T0,[La|Las]),
 	numbarcos(Num),
 	barcos(L),
 	buscarbarco(Num,Lt,L),
-%	isin(pos(Fa,Ca),Lt,Hit),
 	isin(La,Lt,Hit),
-	ataqueaux(T0,T1,Fa,Ca,Hit).
+	ataqueaux(T0,T1,La,Hit).
 
-ataqueaux([T0|T0s],[T1|T0s],0,C,Hit):-
+ataqueaux([T0|T0s],[T1|T0s],pos(0,C),Hit):-
 	ataqueaux2(T0,T1,C,Hit).
-ataqueaux([T0|T0s],[T0|T1],F,C,Hit):-
+ataqueaux([T0|T0s],[T0|T1],pos(F,C),Hit):-
 	Fnew is F -1,
-	ataqueaux(T0s,T1,Fnew,C,Hit).
+	ataqueaux(T0s,T1,pos(Fnew,C),Hit).
 
 ataqueaux2(['g'|T0s],['g'|T0s],0,_).
 ataqueaux2(['f'|T0s],['f'|T0s],0,_).
