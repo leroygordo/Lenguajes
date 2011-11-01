@@ -45,25 +45,35 @@ ataquesposibles(F,C,[[_|Es]|Ts],L):-
        Cnew is C +1,
        ataquesposibles(F,Cnew,[Es|Ts],L).
 
-barcoGolpeado(F,C,[],[]).
-barcoGolpeado(F,C,[[]|Ts],L):-
+barcogolpeado(F,C,[],[]).
+barcogolpeado(F,C,[[]|Ts],L):-
        Fnew is F +1,
        Cnew is 0,
-       barcoGolpeado(Fnew,Cnew,Ts,L).
-barcoGolpeado(F,C,[['g'|Es]|Ts],[pos(F,C)|Ls]):-
+       barcogolpeado(Fnew,Cnew,Ts,L).
+barcogolpeado(F,C,[['g'|Es]|Ts],[pos(F,C)|Ls]):-
        Cnew is C +1,
-       barcoGolpeado(F,Cnew,[Es|Ts],Ls).
-barcoGolpeado(F,C,[[_|Es]|Ts],L):-
+       barcogolpeado(F,Cnew,[Es|Ts],Ls).
+barcogolpeado(F,C,[[_|Es]|Ts],L):-
        Cnew is C +1,
-       barcoGolpeado(F,Cnew,[Es|Ts],L).
+       barcogolpeado(F,Cnew,[Es|Ts],L).
+
+%LA INTELIGENCIA SIEMPRE TIENE QUE GANAR 
+
+adyacente(pos(X,Y),[pos(X,_)|Ls],[pos(U,V)|Lg]):-
+	W is Y + 1,
+	adyacenteaux(pos(X,Y),[pos(X,W)|Ls],[pos(U,V)|Lg])
+
+adyacenteaux(pos(X,Y),[pos(X,W)|_],[pos(U,V)|Lg]):-
+	U is X,
+	V is W.
+
 
 ataque(_,_,0,0).
 ataque(_,_,_,0).
 ataque(_,_,0,_).
 ataque(T0,T1,F,C):-
-	barcoGolpeado(0,0,T0,[Lg|Lgs]),
-	ataquesposibles(0,0,T0,[La|Las]),
-	write([Lg|Lgs]),nl,
+	ataquesposibles(0,0,T0,La),
+	barcogolpeado(0,0,T0,Lg),
 	numbarcos(Num),
 	barcos(L),
 	buscarbarco(Num,Lt,L),
@@ -83,6 +93,32 @@ ataqueaux2(['a'|T0s],[Hit|T0s],0,Hit).
 ataqueaux2([T0|T0s],[T0|T1],C,Hit):-
 	Cnew is C -1,
 	ataqueaux2(T0s,T1,Cnew,Hit).
+
+estadofinal(T):-
+       numbarcos(Num),
+       barcos(L),
+       buscarbarco(Num,Lt,L),!,
+       estadofinalaux(Lt,T).
+
+estadofinalaux([],_).
+estadofinalaux([L|Ls],T):-
+       estadofinalaux2(L,T),
+       estadofinalaux(Ls,T).
+
+estadofinalaux2([],_).
+estadofinalaux2([pos(X,Y)|Ls],T):-
+       estadofinalaux3(X,Y,T),
+       estadofinalaux2(Ls,T).
+       
+estadofinalaux3(0,0,[['h'|Ls]|Ts]).
+estadofinalaux3(0,Y,[[L|Ls]|Ts]):-
+       Y > 0,
+       Ynew is Y -1,
+       estadofinalaux3(0,Ynew,[Ls|Ts]).
+estadofinalaux3(X,Y,[[L|Ls]|Ts]):-
+       X > 0,
+       Xnew is X -1,
+       estadofinalaux3(Xnew,Y,Ts).
 
 colocarBarcos(0,[]).
 colocarBarcos(B,[L,Ls]):-
@@ -140,7 +176,8 @@ jugar:-
 	tableroinicial(NFilas,NColumnas,Tp),
 	colocarBarcos(NBarcos,Lb),
 	assert(barcos(Lb)),
-	mostrartablero(Tp),nl,
+	mostrartablero(Tp),
+	nl,
 	ciclo(Tp,4,NFilas,NColumnas),
 	retractall(tamano(X,Y)),
 	retractall(barcos(P)),
