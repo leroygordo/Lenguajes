@@ -44,12 +44,26 @@ ataquesposibles(F,C,[['a'|Es]|Ts],[pos(F,C)|Ls]):-
 ataquesposibles(F,C,[[_|Es]|Ts],L):-
        Cnew is C +1,
        ataquesposibles(F,Cnew,[Es|Ts],L).
-	
+
+barcoGolpeado(F,C,[],[]).
+barcoGolpeado(F,C,[[]|Ts],L):-
+       Fnew is F +1,
+       Cnew is 0,
+       barcoGolpeado(Fnew,Cnew,Ts,L).
+barcoGolpeado(F,C,[['g'|Es]|Ts],[pos(F,C)|Ls]):-
+       Cnew is C +1,
+       barcoGolpeado(F,Cnew,[Es|Ts],Ls).
+barcoGolpeado(F,C,[[_|Es]|Ts],L):-
+       Cnew is C +1,
+       barcoGolpeado(F,Cnew,[Es|Ts],L).
+
 ataque(_,_,0,0).
 ataque(_,_,_,0).
 ataque(_,_,0,_).
 ataque(T0,T1,F,C):-
+	barcoGolpeado(0,0,T0,[Lg|Lgs]),
 	ataquesposibles(0,0,T0,[La|Las]),
+	write([Lg|Lgs]),nl,
 	numbarcos(Num),
 	barcos(L),
 	buscarbarco(Num,Lt,L),
@@ -111,7 +125,7 @@ ciclo(T,Num,F,C):-
 	Numnew is Num -1,
 	numbarcos(NumB),
 	ataque(T,Tnew,F,C),
-	mostrartablero(Tnew),
+	mostrartablero(Tnew),nl,
 	ciclo(Tnew,Numnew,F,C).
 	
 jugar:-
@@ -126,7 +140,7 @@ jugar:-
 	tableroinicial(NFilas,NColumnas,Tp),
 	colocarBarcos(NBarcos,Lb),
 	assert(barcos(Lb)),
-	mostrartablero(Tp),
+	mostrartablero(Tp),nl,
 	ciclo(Tp,4,NFilas,NColumnas),
 	retractall(tamano(X,Y)),
 	retractall(barcos(P)),
