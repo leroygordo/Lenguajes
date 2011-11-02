@@ -136,9 +136,7 @@ hundirBarcosAux(T0,T1,[Lb|Lbs]):-
 hundirBarco(_,_,[]):-!.
 hundirBarco(T0,T1,[B|Bs]):-
 	hundirBarcoAux(T0,T1,B),
-	mostrartablero(T1),
-	[T0|_] = [T1],
-	hundirBarco(T0,T1,Bs).
+	hundirBarco(T1,T0,Bs).
 
 barcoHundido(_,[]):-!.
 barcoHundido(T0,[L|Ls]):-
