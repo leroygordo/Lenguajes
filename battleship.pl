@@ -127,32 +127,39 @@ hundirBarcos(T0,T1):-
 	buscarbarco(Num,Lt,L),
 	hundirBarcosAux(T0,T1,Lt).
 
-hundirBarcosAux(_,_,[]).
+hundirBarcosAux(_,_,[]):-!.
 hundirBarcosAux(T0,T1,[Lb|Lbs]):-
+	barcoHundido(T0,Lb),
 	hundirBarco(T0,T1,Lb),
 	hundirBarcosAux(T0,T1,Lbs).
 
-hundirBarco(T0,T1,B):-
-	barcoHundido(T0,B),
-	hundirBarcoF(T0,T1,0,T0,T1,B).
+hundirBarco(_,_,[]):-!.
+hundirBarco(T0,T1,[B|Bs]):-
+	hundirBarcoAux(T0,T1,B),
+	mostrartablero(T1),
+	[T0|_] = [T1],
+	hundirBarco(T0,T1,Bs).
 
-barcoHundido(_,[]).
+barcoHundido(_,[]):-!.
 barcoHundido(T0,[L|Ls]):-
 	posicionGolpeado(T0,L),
 	barcoHundido(T0,Ls).
 
-hundirBarcoF(T2,T3,F,[[T0]|T0s],[[T1]|T0s],[pos(F,_)|_]):-
-	hundirBarcoC(T2,T3,0,[[T0]|T0s],[[T1]|T0s],[pos(F,_)|_]).
-hundirBarcoF(T2,T3,F,[T0|T0s],[T0|T1s],[pos(X,Y)|B]):-
-	FNew is F + 1,
-	hundirBarcoF(T2,T3,FNew,T0s,T1s,[pos(X,Y)|B]).
+hundirBarcoAux(T0,T1,pos(X,Y)):-
+	hundirBarcoAuxF(0,T0,T1,pos(X,Y)).
 
-hundirBarcoC(_,_,_,_,[]).
-hundirBarcoC(T2,T3,C,[[T|Ts]|T0s],[['h'|Ts]|T1s],[pos(F,C)|B]):-
-	hundirBarcoF(T2,T3,0,T2,T3,B).
-hundirBarcoC(T2,T3,C,[[T|Ts]|T0s],[[T|Ts]|T1s],[pos(X,Y)|B]):-
+hundirBarcoAuxF(F,[T0|T0s],[T1|T0s],pos(F,Y)):-!,
+	hundirBarcoAuxC(0,T0,T1,pos(F,Y)).
+hundirBarcoAuxF(F,[T0|T0s],[T0|T1s],pos(X,Y)):-
+	FNew is F + 1,
+	hundirBarcoAuxF(FNew,T0s,T1s,pos(X,Y)).
+
+hundirBarcoAuxC(C,[T0|T0s],[L|T1s],pos(X,C)):-!,
+	L = 'h'.
+hundirBarcoAuxC(C,[T0|T0s],[T0|T1s],pos(X,Y)):-
 	CNew is C + 1,
-	hundirBarcoC(T2,T3,CNew,[Ts|T0s],[Ts|T1s],[pos(X,Y)|B]).
+	hundirBarcoAuxC(CNew,T0s,T1s,pos(X,Y)).
+
 	
 estadofinal(T):-
        numbarcos(Num),
