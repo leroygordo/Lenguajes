@@ -57,28 +57,40 @@ barcogolpeado(F,C,[[_|Es]|Ts],L):-
        Cnew is C +1,
        barcogolpeado(F,Cnew,[Es|Ts],L).
 
-%LA INTELIGENCIA SIEMPRE TIENE QUE GANAR 
-
-adyacente(pos(X,Y),[pos(X,_)|Ls],[pos(U,V)|Lg]):-
+adyacente(_,[],_):-!,fail.
+adyacente(pos(X,Y),[pos(X,_)|Ls],pos(U,V)):-
 	W is Y + 1,
-	adyacenteaux(pos(X,Y),[pos(X,W)|Ls],[pos(U,V)|Lg])
+	adyacenteaux(pos(X,Y),[pos(X,W)|Ls],pos(U,V)).
+adyacente(pos(X,Y),[pos(X,_)|Ls],pos(U,V)):-
+	W is Y - 1,
+	adyacenteaux(pos(X,Y),[pos(X,W)|Ls],pos(U,V)).
+adyacente(pos(X,Y),[pos(_,Y)|Ls],pos(U,V)):-
+	W is X + 1,
+	adyacenteaux(pos(X,Y),[pos(W,Y)|Ls],pos(U,V)).
+adyacente(pos(X,Y),[pos(_,Y)|Ls],pos(U,V)):-
+	W is X - 1,
+	adyacenteaux(pos(X,Y),[pos(W,Y)|Ls],pos(U,V)).
+adyacente(pos(X,Y),[_|Ls],pos(U,V)):-
+	adyacente(pos(X,Y),Ls,pos(U,V)).
 
-adyacenteaux(pos(X,Y),[pos(X,W)|_],[pos(U,V)|Lg]):-
-	U is X,
-	V is W.
-
+adyacenteaux(pos(X,Y),[pos(Z,W)|Ls],pos(U,V)):-
+	U is Z,
+	V is W,
+	!.
+	%adyacente(pos(X,Y),Ls,Lg).
 
 ataque(_,_,0,0).
 ataque(_,_,_,0).
 ataque(_,_,0,_).
 ataque(T0,T1,F,C):-
 	ataquesposibles(0,0,T0,La),
-	barcogolpeado(0,0,T0,Lg),
+	barcogolpeado(0,0,T0,[Lg|Lgs]),
+	adyacente(Lg,La,A),
 	numbarcos(Num),
 	barcos(L),
 	buscarbarco(Num,Lt,L),
 	isin(La,Lt,Hit),
-	ataqueaux(T0,T1,La,Hit).
+	ataqueaux(T0,T1,A,Hit).
 
 ataqueaux([T0|T0s],[T1|T0s],pos(0,C),Hit):-
 	ataqueaux2(T0,T1,C,Hit).
@@ -94,6 +106,54 @@ ataqueaux2([T0|T0s],[T0|T1],C,Hit):-
 	Cnew is C -1,
 	ataqueaux2(T0s,T1,Cnew,Hit).
 
+posicionGolpeado(T,pos(X,Y)):-
+	posicionGolpeadoF(0,T,pos(X,Y)).
+
+posicionGolpeadoF(F,[T0|_],pos(F,Y)):-!,
+	posicionGolpeadoC(0,T0,pos(F,Y)).
+posicionGolpeadoF(F,[_|Ts],pos(X,Y)):-
+	FNew is F + 1,
+	posicionGolpeadoF(FNew,Ts,pos(X,Y)).
+
+posicionGolpeadoC(C,['g'|Ts],pos(X,C)):-!.
+posicionGolpeadoC(C,['a'|Ts],pos(X,C)):-fail.
+posicionGolpeadoC(C,[_|Ts],pos(X,Y)):-
+	CNew is C + 1,
+	posicionGolpeadoC(CNew,Ts,pos(X,Y)).
+
+hundirBarcos(T0,T1):-
+	numbarcos(Num),
+	barcos(L),
+	buscarbarco(Num,Lt,L),
+	hundirBarcosAux(T0,T1,Lt).
+
+hundirBarcosAux(_,_,[]).
+hundirBarcosAux(T0,T1,[Lb|Lbs]):-
+	hundirBarco(T0,T1,Lb),
+	hundirBarcosAux(T0,T1,Lbs).
+
+hundirBarco(T0,T1,B):-
+	barcoHundido(T0,B),
+	hundirBarcoF(T0,T1,0,T0,T1,B).
+
+barcoHundido(_,[]).
+barcoHundido(T0,[L|Ls]):-
+	posicionGolpeado(T0,L),
+	barcoHundido(T0,Ls).
+
+hundirBarcoF(T2,T3,F,[[T0]|T0s],[[T1]|T0s],[pos(F,_)|_]):-
+	hundirBarcoC(T2,T3,0,[[T0]|T0s],[[T1]|T0s],[pos(F,_)|_]).
+hundirBarcoF(T2,T3,F,[T0|T0s],[T0|T1s],[pos(X,Y)|B]):-
+	FNew is F + 1,
+	hundirBarcoF(T2,T3,FNew,T0s,T1s,[pos(X,Y)|B]).
+
+hundirBarcoC(_,_,_,_,[]).
+hundirBarcoC(T2,T3,C,[[T|Ts]|T0s],[['h'|Ts]|T1s],[pos(F,C)|B]):-
+	hundirBarcoF(T2,T3,0,T2,T3,B).
+hundirBarcoC(T2,T3,C,[[T|Ts]|T0s],[[T|Ts]|T1s],[pos(X,Y)|B]):-
+	CNew is C + 1,
+	hundirBarcoC(T2,T3,CNew,[Ts|T0s],[Ts|T1s],[pos(X,Y)|B]).
+	
 estadofinal(T):-
        numbarcos(Num),
        barcos(L),
@@ -178,7 +238,8 @@ jugar:-
 	assert(barcos(Lb)),
 	mostrartablero(Tp),
 	nl,
-	ciclo(Tp,4,NFilas,NColumnas),
+	barcoshundidos(Tp,T1,NFilas,NColumnas),
+	%ciclo(Tp,4,NFilas,NColumnas),
 	retractall(tamano(X,Y)),
 	retractall(barcos(P)),
 	retractall(numbarcos(Z)),
