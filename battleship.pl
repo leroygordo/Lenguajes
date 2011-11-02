@@ -131,12 +131,12 @@ hundirBarcosAux(_,_,[]):-!.
 hundirBarcosAux(T0,T1,[Lb|Lbs]):-
 	barcoHundido(T0,Lb),
 	hundirBarco(T0,T1,Lb),
-	hundirBarcosAux(T0,T1,Lbs).
+	hundirBarcosAux(T2,T1,Lbs).
 
-hundirBarco(_,_,[]):-!.
+hundirBarco(_,_,[],_):-!.
 hundirBarco(T0,T1,[B|Bs]):-
 	hundirBarcoAux(T0,T1,B),
-	hundirBarco(T1,T0,Bs).
+	hundirBarco(T2,T1,Bs).
 
 barcoHundido(_,[]):-!.
 barcoHundido(T0,[L|Ls]):-
@@ -152,12 +152,11 @@ hundirBarcoAuxF(F,[T0|T0s],[T0|T1s],pos(X,Y)):-
 	FNew is F + 1,
 	hundirBarcoAuxF(FNew,T0s,T1s,pos(X,Y)).
 
-hundirBarcoAuxC(C,[T0|T0s],[L|T1s],pos(X,C)):-!,
+hundirBarcoAuxC(C,[T0|T0s],[L|T0s],pos(X,C)):-!,
 	L = 'h'.
 hundirBarcoAuxC(C,[T0|T0s],[T0|T1s],pos(X,Y)):-
 	CNew is C + 1,
 	hundirBarcoAuxC(CNew,T0s,T1s,pos(X,Y)).
-
 	
 estadofinal(T):-
        numbarcos(Num),
