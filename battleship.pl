@@ -68,7 +68,7 @@ ataquesposibles(F,C,[[_|Es]|Ts],L):-
 % barcogolpeado(+F,+C,+T,L) :- Se satisface si L corresponde a las posiciones
 %    atacadas pero no hundidas de los barcos dentro del tablero T (de  tamano
 %    TxC), es decir, casillas iguales a 'g'.
-barcogolpeado(F,C,[],[]).
+barcogolpeado(F,C,[],_).
 barcogolpeado(F,C,[[]|Ts],L):-
        Fnew is F +1,
        Cnew is 0,
@@ -80,28 +80,28 @@ barcogolpeado(F,C,[[_|Es]|Ts],L):-
        Cnew is C +1,
        barcogolpeado(F,Cnew,[Es|Ts],L).
 
-% adyacente(+G,+L,A) :- Se satisface si A es una posicion adyacente a G ademas
-%    de pertenecer a la lista L.
-adyacente(_,[],_):-!,fail.
+% adyacente(+G,+L,pos(U,V)) :- Se satisface si pos(U,V) es una posicion adyacente a G 
+%    ademas de pertenecer a la lista L.
+adyacente([],_,_):-!.
+adyacente(_,[],_):-!.
 adyacente(pos(X,Y),[pos(X,_)|Ls],pos(U,V)):-
-    W is Y + 1,
-    adyacenteaux(pos(X,Y),[pos(X,W)|Ls],pos(U,V)).
+    Z0 is Y + 1,
+    adyacenteaux(pos(X,Y),[pos(X,Z0)|Ls],pos(U,V)).
 adyacente(pos(X,Y),[pos(X,_)|Ls],pos(U,V)):-
-    W is Y - 1,
-    adyacenteaux(pos(X,Y),[pos(X,W)|Ls],pos(U,V)).
+    Z1 is Y - 1,
+    adyacenteaux(pos(X,Y),[pos(X,Z1)|Ls],pos(U,V)).
 adyacente(pos(X,Y),[pos(_,Y)|Ls],pos(U,V)):-
-    W is X + 1,
-    adyacenteaux(pos(X,Y),[pos(W,Y)|Ls],pos(U,V)).
+    Z2 is X + 1,
+    adyacenteaux(pos(X,Y),[pos(Z2,Y)|Ls],pos(U,V)).
 adyacente(pos(X,Y),[pos(_,Y)|Ls],pos(U,V)):-
-    W is X - 1,
-    adyacenteaux(pos(X,Y),[pos(W,Y)|Ls],pos(U,V)).
-adyacente(pos(X,Y),[_|Ls],pos(U,V)):-
+    Z3 is X - 1,
+    adyacenteaux(pos(X,Y),[pos(Z3,Y)|Ls],pos(U,V)).
+adyacente(pos(X,Y),[pos(_,_)|Ls],pos(U,V)):-
     adyacente(pos(X,Y),Ls,pos(U,V)).
 
-adyacenteaux(pos(X,Y),[pos(Z,W)|Ls],pos(U,V)):-
+adyacenteaux(pos(X,Y),[pos(Z,W)|Ls],pos(U,V)):-!,
     U is Z,
-    V is W,
-    !.
+    V is W.
 
 % ataque(+T0,T1,+F,+C) :- se satisface si T0, T1 son tableros de F filas C columnas
 %    donde T1 corresponde a disparar o hundir un barco en T0.
@@ -109,19 +109,21 @@ ataque(_,_,0,0).
 ataque(_,_,_,0).
 ataque(_,_,0,_).
 ataque(T0,T1,F,C):-
-    ataquesposibles(0,0,T0,La),
-    barcogolpeado(0,0,T0,[Lg|Lgs]),
-    adyacente(Lg,La,A),
+    ataquesposibles(0,0,T0,[La|Las]),
+    barcogolpeado(0,0,T0,[Lg|Lgs]),!,
+    adyacente(Lg,[La|Las],A),
     numbarcos(Num),
     barcos(L),
-    buscarbarco(Num,Lt,L),
-    isin(La,Lt,Hit),
-    ataqueaux(T0,T1,A,Hit).
+    buscarbarco(Num,Lt,L),!,
+    isin(A,Lt,Hit),
+    ataqueaux(T0,T2,A,Hit),
+	hundirBarcos(T2,T1).
 
 ataqueaux([T0|T0s],[T1|T0s],pos(0,C),Hit):-
     ataqueaux2(T0,T1,C,Hit).
 ataqueaux([T0|T0s],[T0|T1],pos(F,C),Hit):-
     Fnew is F -1,
+	Fnew > 0,
     ataqueaux(T0s,T1,pos(Fnew,C),Hit).
 
 ataqueaux2(['g'|T0s],['g'|T0s],0,_).
@@ -130,6 +132,7 @@ ataqueaux2(['h'|T0s],['h'|T0s],0,_).
 ataqueaux2(['a'|T0s],[Hit|T0s],0,Hit).
 ataqueaux2([T0|T0s],[T0|T1],C,Hit):-
     Cnew is C -1,
+	Cnew > 0,
     ataqueaux2(T0s,T1,Cnew,Hit).
 
 % posicionGolpeado(+T,G) :- se satisface si G corresponde a una posicion  en  T
@@ -158,22 +161,22 @@ posicionGolpeadoC(C,[_|Ts],pos(X,Y)):-
 hundirBarcos(T0,T1):-
     numbarcos(Num),
     barcos(L),
-    buscarbarco(Num,Lt,L),
+    buscarbarco(Num,Lt,L),!,
     hundirBarcosAux(T0,T1,Lt).
 
 % hundirBarcosAux(+T0,+T1,+L) :- se satisface si T1 es el tablero que refleja los
 %    barcos L hundidos de T0
 hundirBarcosAux(_,_,[]):-!.
 hundirBarcosAux(T0,T1,[Lb|Lbs]):-
-    barcoHundido(T0,Lb),
-    hundirBarco(T0,T1,Lb),
+    barcoHundido(T0,Lb),!,
+    hundirBarco(T0,T1,Lb),!,
     hundirBarcosAux(T2,T1,Lbs).
 
 % hundirBarco(+T0,+T1,+B) :- se satisface si T1 refleja que un barco B (posiciones
 %    del barco) fue hundido.
-hundirBarco(_,_,[],_):-!.
+hundirBarco(L,L,[]):-!.
 hundirBarco(T0,T1,[B|Bs]):-
-    hundirBarcoAux(T0,T1,B),
+    hundirBarcoAux(T0,T2,B),
     hundirBarco(T2,T1,Bs).
 
 % barcoHundido(T,B) :- se satisface si una barco B ha sido golpeado completamente.
@@ -195,7 +198,7 @@ hundirBarcoAuxF(F,[T0|T0s],[T0|T1s],pos(X,Y)):-
     hundirBarcoAuxF(FNew,T0s,T1s,pos(X,Y)).
 
 % hundirBarcoAuxC(C,T0,T1,H) :- se satisface si la coordenada X de H es igual a C
-    T1 es el tablero cuya posicion H es igual a 'h'.
+%    T1 es el tablero cuya posicion H es igual a 'h'.
 hundirBarcoAuxC(C,[T0|T0s],[L|T0s],pos(X,C)):-!,
     L = 'h'.
 hundirBarcoAuxC(C,[T0|T0s],[T0|T1s],pos(X,Y)):-
@@ -271,13 +274,16 @@ agregarbarco(F,C,T,'h',[L|Ls]):-
     L = pos(F,C),
     agregarbarco(F,Cnew,Tnew,'h',Ls).
     
-ciclo(_,0,_,_).
-ciclo(T,Num,F,C):-
-    Numnew is Num -1,
+ciclo(_,_,_,0).
+ciclo(T,F,C,Balas):-
+	Balas > 0,
+	BalasNew is Balas - 1,
+	\+(estadofinal(T)),
     numbarcos(NumB),
     ataque(T,Tnew,F,C),
-    mostrartablero(Tnew),nl,
-    ciclo(Tnew,Numnew,F,C).
+    mostrartablero(Tnew),
+	nl,
+    ciclo(Tnew,F,C,BalasNew).
     
 jugar:-
     write('Num. de Filas: '),
@@ -291,10 +297,11 @@ jugar:-
     tableroinicial(NFilas,NColumnas,Tp),
     colocarBarcos(NBarcos,Lb),
     assert(barcos(Lb)),
+	write('Cant. de proyectiles disponibles: '),
+	read(NBalas),
     mostrartablero(Tp),
     nl,
-    barcoshundidos(Tp,T1,NFilas,NColumnas),
-    %ciclo(Tp,4,NFilas,NColumnas),
+    ciclo(Tp,NFilas,NColumnas,NBalas),
     retractall(tamano(X,Y)),
     retractall(barcos(P)),
     retractall(numbarcos(Z)),
